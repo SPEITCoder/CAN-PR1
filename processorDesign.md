@@ -68,12 +68,15 @@ Suppose initially all the registers are null.
 1. Cpy $0, +127 ($0 = +127)
 
 <code>1 1 1 1 | 0 1 1 1 1 1 1 1 | 0 0 0 0</code>
+
 2. Cpy $1, +7  ($1 = +7)
 
 <code>1 1 1 1 | 0 0 0 0 0 1 1 1 | 0 0 0 1</code>
+
 3. Sll $0, $1, $2 ($2 = 16256)
 
 <code>1 1 0 1 | 0 0 1 0 | 0 0 0 1 | 0 0 0 0</code>
+
 4. Add $2, $0, $3 ($3 = 16383)
 
 <code>1 1 0 0 | 0 0 1 1 0 0 0 0 | 0 0 1 0</code>
