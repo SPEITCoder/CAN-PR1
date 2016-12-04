@@ -46,7 +46,7 @@ Say $1 is +10(decimal), 0 [...] 1 0 1 0 (binary), $2 is -2, $3 is whatever numbe
 
 #### Type 4 for copy instruction containing 1 register address and a 8-bit immediate number.
 ```
-▃▃0▃▁▁1▁▃▃1▃▃▃1▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▃reg▃write▃add▃▃
+▃▃0▃▁▁1▁▃▃1▃▃▃1▃▁reg▁write▁add▁▁▃▃▃▃immediate▃number▃▃▃▃▃▃▃▃▃▃▃▃
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
 ```
 [02][03] set to 1 1 to indicate that it is a copy (Cpy in assembly).
@@ -69,11 +69,11 @@ Suppose initially all the registers are null.
 
 1. Cpy $0, +127 ($0 = +127)
 
-<code>0 1 1 1 | 0 1 1 1 1 1 1 1 | 0 0 0 0</code>
+<code>0 1 1 1 | 0 0 0 0 | 0 1 1 1 1 1 1 1</code>
 
 2. Cpy $1, +7  ($1 = +7)
 
-<code>0 1 1 1 | 0 0 0 0 0 1 1 1 | 0 0 0 1</code>
+<code>0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 1 1 1</code>
 
 3. Sll $0, $1, $2 ($2 = 16256)
 
@@ -85,7 +85,7 @@ Suppose initially all the registers are null.
 
 5. Cpy $1, +2 ($1 = +2)
 
-<code>0 1 1 1 | 0 0 0 0 0 0 1 0 | 0 0 0 1</code>
+<code>0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 0 1 0</code>
 
 6. Sll $3, $1, $4 ($4 = 65532)
 
@@ -93,7 +93,7 @@ Suppose initially all the registers are null.
 
 7. Cpy $0, +3 ($0 = +3)
 
-<code>0 1 1 1 | 0 0 0 0 0 0 1 1 | 0 0 0 0</code>
+<code>0 1 1 1 | 0 0 0 0 | 0 0 0 0 0 0 1 1</code>
 
 8. Add $4, $0, $15 ($15 = 65535)
 
