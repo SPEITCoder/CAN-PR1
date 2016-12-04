@@ -113,7 +113,7 @@ Suppose initially all the registers are null.
 
 <code>Cpy $12, +4</code> --- ($12 = +4)
 
-<code>Cpy $11, +1</code> --- ($13 = +1)
+<code>Cpy $11, +1</code> --- ($11 = +1)
 
 <code>XOR $2, $3, $14</code> --- (compare i and 9, storing the result in $14)
 
