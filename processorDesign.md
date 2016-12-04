@@ -1,36 +1,30 @@
 # 3 Processor Design
 ## 3.1 Instruction Set Structure
 ### Instruction Definition
-<code>[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]</code>
-
-<code>▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 1</code>
-
-<code>▃▃▃▃▁▁▁▁▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 2</code>
-
-<code>▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 3</code>
-
-<code>▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 4</code>
-
+```
+[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 1
+▃▃▃▃▁▁▁▁▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 2
+▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 3
+▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 4
+```
 #### Type 1 for <code>conditional branch (bne in assembly)</code>
-
-<code>▃▃0▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃register▃addr▃</code>
-
-<code>[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]</code>
-
+```
+▃▃0▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃register▃addr▃
+[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+```
 #### Type 2 for <code>load</code> and <code>store</code>
-
-<code>▃▃1▃▁▁0▁▃▃▃▃▁immediate▁operand▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁</code>
-
-<code>[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]</code>
-
+```
+▃▃1▃▁▁0▁▃▃▃▃▁immediate▁operand▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁
+[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+```
 [02] could be 0 or 1 to indicate load or store respectively.
 
 #### Type 3 for 3 arithmetic/logic instruction operating on 3 register operands.
-
-<code>▃▃1▃▁▁1▁▃ope▃n.▃▁reg▁write▁add▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁</code>
-
-<code>[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]</code>
-
+```
+▃▃1▃▁▁1▁▃ope▃n.▃▁reg▁write▁add▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁
+[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+```
 [02][03] could be 0 0, 0 1, 1 0 to indicate 3 a/l instruction.
 + 0 0 for addition, 
 + 0 1 for left shifting (shifting reg_read_1 to the left by reg_read_2 bits, store in reg_write), 
@@ -49,11 +43,10 @@ is equivalent to write in assembly format Sll $1, $2, $3
 Say $1 is +10(decimal), 0 [...] 1 0 1 0 (binary), $2 is -2, $3 is whatever number, after the operation, $3 should contain +2(decimal).
 
 #### Type 4 for copy instruction containing 1 register address and a 8-bit immediate number.
-
-<code>▃▃1▃▁▁1▁▃▃1▃▃▃1▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▃reg▃write▃add▃▃</code>
-
-<code>[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]</code>
-
+```
+▃▃1▃▁▁1▁▃▃1▃▃▃1▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▃reg▃write▃add▃▃
+[00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+```
 [02][03] set to 1 1 to indicate that it is a copy (Cpy in assembly).
 
 Note that type 3 and type 4 are variations of type 3, while varying [02][03] to allocate the following bit space differently.
