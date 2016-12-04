@@ -15,10 +15,12 @@
 ```
 #### Type 2 for <code>load</code> and <code>store</code>
 ```
-▃▃0▃▁▁0▁▃▃▃▃▁immediate▁operand▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁
+▃▃0▃▁▁0▁▃▃▃▃▁immediate▁operand▁▁▃reg▃read▃add▃2▃▁reg▁r/w▁▁add▁1▁
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
 ```
 [02] could be 0 or 1 to indicate load or store respectively.
+When in load mode, [12-15] is the write register address.
+When in store mode, [12-15] is the read register address.
 
 #### Type 3 for 3 arithmetic/logic instruction operating on 3 register operands.
 ```
