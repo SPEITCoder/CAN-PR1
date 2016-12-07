@@ -1,6 +1,7 @@
 # 3 Processor Design
 ## 3.1 Instruction Set Structure
 ### Instruction Definition
+**Imporant note: All numbers are signed**
 ```
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
 ▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 1
@@ -8,38 +9,78 @@
 ▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 3
 ▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 4
 ```
+Different thickness represent separate bit usage.
 #### Type 1 for <code>conditional branch (bne in assembly)</code>
 ```
 ▃▃1▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃register▃addr▃
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+[00] Fixed 1, similar to opcode
+[01 - 11] signed immediate number
+[12 - 15] register to be compared with 0
 ```
+This instruction compares the register value with 0.
+On finding a non-zero value, the program counter will be set to current PC + imm_number.
+
+E.g.
+```
+1 | 0 0 0 0 0 0 0 0 1 0 0 | 0 1 0 1
+```
+If register No. 3 contains a non-zero value, the program counter will increase by 4.
 #### Type 2 for <code>load</code> and <code>store</code>
 ```
 ▃▃0▃▁▁0▁▃▃▃▃▁immediate▁operand▁▁▃reg▃read▃add▃2▃▁reg▁r/w▁▁add▁1▁
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+[00] Fixed 0, similar to opcode
+[01] Fixed 0, opcode extension
+[02 - 03] funct bits
+[03 - 07] signed immediate number, offset in memory address
+[08 - 11] register address containing memory address
+[12 - 15] register containing the value / to be written with the memory content
 ```
+This instruction accesses (reads/writes) memory address reg_r/w_add_1 * 4.
+
 [02] could be 0 or 1 to indicate load or store respectively.
+
 When in load mode, [12-15] is the write register address.
 When in store mode, [12-15] is the read register address.
 
+E.g.
+```
+0 0 0 | 0 0 1 0 0 | 0 1 0 0 | 0 1 0 1
+```
+This instruction copies memory content at (0x10 + $r4 value) to $r3.
+```
+0 0 1 | 0 1 0 0 0 | 1 1 0 0 | 0 1 0 1
+```
+This instruction copies the value stored in register 5 to memory at address (0x20 + $r12 value).
 #### Type 3 for 3 arithmetic/logic instruction operating on 3 register operands.
 ```
 ▃▃0▃▁▁1▁▃ope▃n.▃▁reg▁write▁add▁▁▃reg▃read▃add▃2▃▁reg▁read▁add▁1▁
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+[00] Fixed 0
+[01] Fixed 1
+[02 - 03] Operation distinction bits
+[04 - 07] register to write the operation result
+[08 - 11] register containing operant 2
+[12 - 15] register containing operant 1
 ```
 [02][03] could be 0 0, 0 1, 1 0 to indicate 3 a/l instruction.
-+ 0 0 for addition, 
++ 0 0 for addition,
 + 0 1 for left shifting (shifting reg_read_1 to the left by reg_read_2 bits, store in reg_write), 
 + and 1 0 for logic XOR.
 
-Example: Addition : 1 1 0 0 0 0 1 1 0 0 1 0 0 0 0 1 
-
+Example: Addition : 
+```
+1 1 | 0 0 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
+```
 is equivalent to write in assembly format Add $1, $2, $3 (register order is inversed from the binary).
 
 Say $1 is +10(decimal), $2 is -4, $3 is whatever number, after the operation, $3 should contain +6.
 
-Example: Left shifting : 1 1 0 1 0 0 1 1 0 0 1 0 0 0 0 1 
-
+Example: Left shifting :
+```
+1 1 | 0 1 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
+```
 is equivalent to write in assembly format Sll $1, $2, $3
 
 Say $1 is +10(decimal), 0 [...] 1 0 1 0 (binary), $2 is -2, $3 is whatever number, after the operation, $3 should contain +2(decimal).
@@ -48,8 +89,19 @@ Say $1 is +10(decimal), 0 [...] 1 0 1 0 (binary), $2 is -2, $3 is whatever numbe
 ```
 ▃▃0▃▁▁1▁▃▃1▃▃▃1▃▁reg▁write▁add▁▁▃▃▃▃immediate▃number▃▃▃▃▃▃▃▃▃▃▃▃
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
+00] Fixed 0
+[01] Fixed 1
+[02 - 03] Operation distinction bits, fixed to 11
+[04 - 07] Register to write the operation result
+[08 - 15] Signed immediate number
 ```
 [02][03] set to 1 1 to indicate that it is a copy (Cpy in assembly).
+
+E.g.
+```
+0 1 1 1 | 0 0 1 0 | 1 0 0 0 1 0 1 1
+```
+This instruction sets register 2 with a value of -117.
 
 Note that type 3 and type 4 are variations of type 3, while varying [02][03] to allocate the following bit space differently.
 
@@ -127,3 +179,4 @@ Suppose initially all the registers are null.
 
 <code>Bne $14, -20</code> (jump back to XOR $2, $3, $14)
 
+<code>Cpy $7, +0</code> (a placeholder, which has no influence on the program)
