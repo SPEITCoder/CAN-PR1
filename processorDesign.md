@@ -9,7 +9,7 @@
 ▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ : type 3
 ▃▃▃▃▁▁▁▁▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ : type 4
 ```
-Different thickness represent separate bit usage.
+Different thickness represents separate bit usage space.
 #### Type 1 for <code>conditional branch (bne in assembly)</code>
 ```
 ▃▃1▃▁▁▁▁immediate▁number▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃register▃addr▃
@@ -61,8 +61,8 @@ This instruction copies the value stored in register 5 to memory at address (0x2
 [01] Fixed 1
 [02 - 03] Operation distinction bits
 [04 - 07] register to write the operation result
-[08 - 11] register containing operant 2
-[12 - 15] register containing operant 1
+[08 - 11] register containing operand 2
+[12 - 15] register containing operand 1
 ```
 [02][03] could be 0 0, 0 1, 1 0 to indicate 3 a/l instruction.
 + 0 0 for addition,
@@ -71,7 +71,7 @@ This instruction copies the value stored in register 5 to memory at address (0x2
 
 Example: Addition : 
 ```
-1 1 | 0 0 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
+0 1 | 0 0 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
 ```
 is equivalent to write in assembly format Add $1, $2, $3 (register order is inversed from the binary).
 
@@ -79,7 +79,7 @@ Say $1 is +10(decimal), $2 is -4, $3 is whatever number, after the operation, $3
 
 Example: Left shifting :
 ```
-1 1 | 0 1 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
+0 1 | 0 1 | 0 0 1 1 | 0 0 1 0 | 0 0 0 1 
 ```
 is equivalent to write in assembly format Sll $1, $2, $3
 
@@ -105,7 +105,7 @@ This instruction sets register 2 with a value of -117.
 
 Note that type 3 and type 4 are variations of type 3, while varying [02][03] to allocate the following bit space differently.
 
-Also, all the immediate numbers are signed, to economize the function space bits.
+Also, all the immediate numbers are signed, to no longer require instructions for signed/unsigned immediate numbers to economize the function space bits.
 
 Negative numbers are the complementary of the positive number + 1.
 
@@ -180,3 +180,38 @@ Suppose initially all the registers are null.
 <code>Bne $14, -20</code> (jump back to XOR $2, $3, $14)
 
 <code>Cpy $7, +0</code> (a placeholder, which has no influence on the program)
+
+
+## 3.2 Pipelining
+### Hazards
+#### Data Hazards
+Assumed by the project document, values written in the EX stage are immediately available in the ID stage,
+
+thus there's no data hazard.
+#### Control Hazards
+In this design, conditional branches are executed in the ID stage, thus if a branch is taken we need to flush one instruction that is currently in IF stage.
+
+Therefore, control hazards do exist.
+#### Structural Hazards
+Regarding to register file, we assume that registers are read at the end of the ID stage and written at the beginning of the EX stage, thus no reading and writing contention would happen.
+The processor implements a writing enabler and a unique writing address, thus no conflict would happen.
+Meanwhile reading the same register would not do any harm.
+
+Regarding to data memory, memory uses one bit input to set READ/WRITE mode, so accessing memory is safe.
+In conclusion, we have no structural hazards.
+
+### Forwarding
+This processor has only three stages: IF, ID and EX.
+
+And as demonstrated above, we have no data hazards, thus at least the register data are consistent.
+
+As ALU only take inputs from instruction (immediate numbers) and register files (data stored in registers), the inputs are always ready when the ALU needs them.
+
+For conditional branches, this happens in ID stage, if by saying registers are read at the end of the ID stage we still allow some time for the logic gates and arithmetic units to compute, the conditional branch selection has all the inputs ready when needed.
+Otherwise, we need a forwarding mechanism to forward the data (that is needed by the conditional branch selector and is already computed in the EX stage but not yet written into register) to have the branch selection done before ID stage finishes.
+
+Therefore, we need not forwarding mechanisms under the condition that we allow time for the branch selection time after reading the register needed at the end of ID stage.
+
+### Last two iterations
+
+Placeholder.
