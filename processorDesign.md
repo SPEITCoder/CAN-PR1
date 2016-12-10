@@ -121,37 +121,53 @@ Suppose initially all the registers are null.
 
 1. Cpy $0, +127 ($0 = +127)
 
-<code>0 1 1 1 | 0 0 0 0 | 0 1 1 1 1 1 1 1</code>
+```
+0 1 1 1 | 0 0 0 0 | 0 1 1 1 1 1 1 1
+```
 
 2. Cpy $1, +7  ($1 = +7)
 
-<code>0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 1 1 1</code>
+```
+0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 1 1 1
+```
 
 3. Sll $0, $1, $2 ($2 = 16256)
 
-<code>0 1 0 1 | 0 0 1 0 | 0 0 0 1 | 0 0 0 0</code>
+```
+0 1 0 1 | 0 0 1 0 | 0 0 0 1 | 0 0 0 0
+```
 
 4. Add $2, $0, $3 ($3 = 16383)
 
-<code>0 1 0 0 | 0 0 1 1 0 0 0 0 | 0 0 1 0</code>
+```
+0 1 0 0 | 0 0 1 1 0 0 0 0 | 0 0 1 0
+```
 
 5. Cpy $1, +2 ($1 = +2)
 
-<code>0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 0 1 0</code>
+```
+0 1 1 1 | 0 0 0 1 | 0 0 0 0 0 0 1 0
+```
 
 6. Sll $3, $1, $4 ($4 = 65532)
 
-<code>0 1 0 1 | 0 1 0 0 | 0 0 0 1 | 0 1 0 0</code>
+```
+0 1 0 1 | 0 1 0 0 | 0 0 0 1 | 0 1 0 0
+```
 
 7. Cpy $0, +3 ($0 = +3)
 
-<code>0 1 1 1 | 0 0 0 0 | 0 0 0 0 0 0 1 1</code>
+```
+0 1 1 1 | 0 0 0 0 | 0 0 0 0 0 0 1 1
+```
 
 8. Add $4, $0, $15 ($15 = 65535)
 
-<code>0 1 0 0 | 1 1 1 1 | 0 0 0 0 | 0 1 0 0</code>
+```
+0 1 0 0 | 1 1 1 1 | 0 0 0 0 | 0 1 0 0
+```
 
-9. Since the instructions are all executed, PC now points to nothing, CPU can return the result on reading $15, which is predefined as the return value register.
+9. PC now points to an instruction that does nothing important, if the branch is not taken, PC detects that instructions have run out, and the program finishes.
 
 ### Translating the code.
 
@@ -177,12 +193,37 @@ Suppose initially all the registers are null.
 
 <code>Add $2, $11, $2</code> --- <code> i++ </code>
 
-<code>Bne $14, -20</code> (jump back to XOR $2, $3, $14)
+<code>Bne $14, -24</code> (jump back to XOR $2, $3, $14)
 
 <code>Cpy $7, +0</code> (a placeholder, which has no influence on the program)
 
 
 ## 3.2 Pipelining
+### Diagram
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
 ### Hazards
 #### Data Hazards
 Assumed by the project document, values written in the EX stage are immediately available in the ID stage,
@@ -214,4 +255,20 @@ Therefore, we need not forwarding mechanisms under the condition that we allow t
 
 ### Last two iterations
 
+```
+[IF][ID][EX] XOR $2, $3, $14
+    [IF][ID][EX] Load $0, $13, +0 ($13 is ready as soon as EX begins)
+        [IF][ID][EX] Add $1, $13, $1 ($13 is read at the end of ID)
+            [IF][ID][EX] Add $0, $12, $0 
+                [IF][ID][EX] Add $2, $11, $2
+                    [IF][ID][EX] Bne $14, -24 (Branch taken, flush one instruction that is in IF, nothing happens in EX)
+                        [IF][xx][xx] is flushed (Penalty is 1)
+                            [IF][ID][EX] XOR $2, $3, $14 
+                                [IF][ID][EX] Load $0, $13, +0 
+                                    [IF][ID][EX] Load $0, $13, +0
+                                        [IF][ID][EX] Add $0, $12, $0
+                                            [IF][ID][EX] Add $2, $11, $2
+                                                [IF][ID][EX] Bne $14, -24
+                                                    [IF][ID][EX] Cpy $7, +0
+```
 Placeholder.
