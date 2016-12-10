@@ -32,7 +32,7 @@ If register No. 3 contains a non-zero value, the program counter will increase b
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
 [00] Fixed 0, similar to opcode
 [01] Fixed 0, opcode extension
-[02 - 03] funct bits
+[02] funct bit
 [03 - 07] signed immediate number, offset in memory address
 [08 - 11] register address containing memory address
 [12 - 15] register containing the value / to be written with the memory content
@@ -89,7 +89,7 @@ Say $1 is +10(decimal), 0 [...] 1 0 1 0 (binary), $2 is -2, $3 is whatever numbe
 ```
 ▃▃0▃▁▁1▁▃▃1▃▃▃1▃▁reg▁write▁add▁▁▃▃▃▃immediate▃number▃▃▃▃▃▃▃▃▃▃▃▃
 [00][01][02][03][04][05][06][07][08][09][10][11][12][13][14][15]
-00] Fixed 0
+[00] Fixed 0
 [01] Fixed 1
 [02 - 03] Operation distinction bits, fixed to 11
 [04 - 07] Register to write the operation result
@@ -116,6 +116,8 @@ Negative numbers are the complementary of the positive number + 1.
 + R-format : type 3 and 4
 
 ### Loading 65535 into a register
++ Let's consider the first case, where numbers are copied on conserving the negativity of the immediate numbers.
+That's to say, if a negative number (e.g. 11111111) is being copied, all the more significant bits are completed with 1.
 
 Suppose initially all the registers are null.
 
@@ -169,6 +171,23 @@ Suppose initially all the registers are null.
 
 9. PC now points to an instruction that does nothing important, if the branch is not taken, PC detects that instructions have run out, and the program finishes.
 
++ The second case, where copy is only copying the bits (thus the signed property is neglected), the problem becomes much simpler.
+1. Cpy $1, -1 ($1 = +255) 
+```
+0 1 1 1 | 0 0 0 1 | 1 1 1 1 1 1 1 1
+```
+2. Cpy $2, +8 ($2 = +8) 
+```
+0 1 1 1 | 0 0 1 0 | 0 0 0 0 1 0 0 0
+```
+3. Sll $1, $2, $3 ($3 = 65280)
+```
+0 1 0 1 | 0 0 0 1 | 0 0 1 0| 0 0 0 1
+```
+4. Cpy $1 -1 ($1=65535) (while the higher bits are not impacted.)
+```
+0 1 1 1 | 0 0 0 1 | 1 1 1 1 1 1 1 1
+```
 ### Translating the code.
 
 <code>Cpy $0, +32</code>  --- <code>int *a = 0x20</code> 
@@ -200,30 +219,7 @@ Suppose initially all the registers are null.
 
 ## 3.2 Pipelining
 ### Diagram
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```
+Please refer to the last page.
 ### Hazards
 #### Data Hazards
 Assumed by the project document, values written in the EX stage are immediately available in the ID stage,
@@ -256,19 +252,26 @@ Therefore, we need not forwarding mechanisms under the condition that we allow t
 ### Last two iterations
 
 ```
+...
 [IF][ID][EX] XOR $2, $3, $14
     [IF][ID][EX] Load $0, $13, +0 ($13 is ready as soon as EX begins)
         [IF][ID][EX] Add $1, $13, $1 ($13 is read at the end of ID)
             [IF][ID][EX] Add $0, $12, $0 
                 [IF][ID][EX] Add $2, $11, $2
-                    [IF][ID][EX] Bne $14, -24 (Branch taken, flush one instruction that is in IF, nothing happens in EX)
-                        [IF][xx][xx] is flushed (Penalty is 1)
+                    [IF][ID][EX] Bne $14, -24 (Note 1)
+                        [IF][xx][xx] Cpy $7, +0 is flushed (Penalty is 1)
                             [IF][ID][EX] XOR $2, $3, $14 
                                 [IF][ID][EX] Load $0, $13, +0 
                                     [IF][ID][EX] Load $0, $13, +0
                                         [IF][ID][EX] Add $0, $12, $0
                                             [IF][ID][EX] Add $2, $11, $2
-                                                [IF][ID][EX] Bne $14, -24
-                                                    [IF][ID][EX] Cpy $7, +0
+                                                [IF][ID][EX] Bne $14, -24 (Note 2)
+                                                    [IF][ID][EX] Cpy $7, +0 (Note 3)
 ```
-Placeholder.
++ (Note 1) Branch taken, flush one instruction that is in IF, nothing happens in EX
++ (Note 2) Branch not taken
++ (Note 3) A useless instruction
+
+In conclusion, with the assumption that we do not have structural hazards, the 9 first iterations each has 1 instruction being flushed, the last iteration has one instruction that is designed to do nothing (to prevent the exhaustion of instructions).
+
+So the total penalty is 10, 9 if not counting the last Cpy instruction which does nothing.
